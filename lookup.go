@@ -10,7 +10,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/routing"
 
 	"github.com/ipfs/go-cid"
-	pb "github.com/libp2p/go-libp2p-kad-dht/pb"
 	kb "github.com/libp2p/go-libp2p-kbucket"
 	"github.com/multiformats/go-base32"
 )
@@ -84,12 +83,11 @@ func (dht *IpfsDHT) GetClosestPeers(ctx context.Context, key string) (<-chan pee
 				ID:   p,
 			})
 
-			pmes, err := dht.findPeerSingle(ctx, p, peer.ID(key))
+			peers, err := dht.protoMessenger.GetClosestPeers(ctx, p, peer.ID(key))
 			if err != nil {
 				logger.Debugf("error getting closer peers: %s", err)
 				return nil, err
 			}
-			peers := pb.PBPeersToPeerInfos(pmes.GetCloserPeers())
 
 			// For DHT query command
 			routing.PublishQueryEvent(ctx, &routing.QueryEvent{
