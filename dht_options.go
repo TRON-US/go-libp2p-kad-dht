@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TRON-US/go-btns"
 	ds "github.com/ipfs/go-datastore"
 	dssync "github.com/ipfs/go-datastore/sync"
-	"github.com/ipfs/go-ipns"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -85,7 +85,7 @@ func (c *config) applyFallbacks(h host.Host) error {
 				nsval["pk"] = record.PublicKeyValidator{}
 			}
 			if _, ipnsFound := nsval["ipns"]; !ipnsFound {
-				nsval["ipns"] = ipns.Validator{KeyBook: h.Peerstore()}
+				nsval["ipns"] = btns.Validator{KeyBook: h.Peerstore()}
 			}
 		} else {
 			return fmt.Errorf("the default validator was changed without being marked as changed")
@@ -156,8 +156,8 @@ func (c *config) validate() error {
 
 	if ipnsVal, ipnsValFound := nsval["ipns"]; !ipnsValFound {
 		return fmt.Errorf("protocol prefix %s must support the /ipns namespaced validator", DefaultPrefix)
-	} else if _, ok := ipnsVal.(ipns.Validator); !ok {
-		return fmt.Errorf("protocol prefix %s must use ipns.Validator for the /ipns namespace", DefaultPrefix)
+	} else if _, ok := ipnsVal.(btns.Validator); !ok {
+		return fmt.Errorf("protocol prefix %s must use btns.Validator for the /ipns namespace", DefaultPrefix)
 	}
 	return nil
 }

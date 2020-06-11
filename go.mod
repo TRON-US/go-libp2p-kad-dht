@@ -3,6 +3,7 @@ module github.com/libp2p/go-libp2p-kad-dht
 go 1.14
 
 require (
+	github.com/TRON-US/go-btns v0.1.0
 	github.com/gogo/protobuf v1.3.1
 	github.com/google/gopacket v1.1.17
 	github.com/google/uuid v1.1.1
@@ -12,7 +13,6 @@ require (
 	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-detect-race v0.0.1
 	github.com/ipfs/go-ipfs-util v0.0.1
-	github.com/ipfs/go-ipns v0.0.2
 	github.com/ipfs/go-log v1.0.4
 	github.com/jbenet/goprocess v0.1.4
 	github.com/libp2p/go-eventbus v0.1.0
