@@ -31,7 +31,7 @@ const (
 )
 
 // DefaultPrefix is the application specific prefix attached to all DHT protocols by default.
-const DefaultPrefix protocol.ID = "/ipfs"
+const DefaultPrefix protocol.ID = "/btfs"
 
 // Options is a structure containing all the options that can be used when constructing a DHT.
 type config struct {
@@ -84,8 +84,8 @@ func (c *config) applyFallbacks(h host.Host) error {
 			if _, pkFound := nsval["pk"]; !pkFound {
 				nsval["pk"] = record.PublicKeyValidator{}
 			}
-			if _, ipnsFound := nsval["ipns"]; !ipnsFound {
-				nsval["ipns"] = btns.Validator{KeyBook: h.Peerstore()}
+			if _, ipnsFound := nsval["btns"]; !ipnsFound {
+				nsval["btns"] = btns.Validator{KeyBook: h.Peerstore()}
 			}
 		} else {
 			return fmt.Errorf("the default validator was changed without being marked as changed")
@@ -145,7 +145,7 @@ func (c *config) validate() error {
 	}
 
 	if len(nsval) != 2 {
-		return fmt.Errorf("protocol prefix %s must have exactly two namespaced validators - /pk and /ipns", DefaultPrefix)
+		return fmt.Errorf("protocol prefix %s must have exactly two namespaced validators - /pk and /btns", DefaultPrefix)
 	}
 
 	if pkVal, pkValFound := nsval["pk"]; !pkValFound {
@@ -154,10 +154,10 @@ func (c *config) validate() error {
 		return fmt.Errorf("protocol prefix %s must use the record.PublicKeyValidator for the /pk namespace", DefaultPrefix)
 	}
 
-	if ipnsVal, ipnsValFound := nsval["ipns"]; !ipnsValFound {
-		return fmt.Errorf("protocol prefix %s must support the /ipns namespaced validator", DefaultPrefix)
+	if ipnsVal, ipnsValFound := nsval["btns"]; !ipnsValFound {
+		return fmt.Errorf("protocol prefix %s must support the /btns namespaced validator", DefaultPrefix)
 	} else if _, ok := ipnsVal.(btns.Validator); !ok {
-		return fmt.Errorf("protocol prefix %s must use btns.Validator for the /ipns namespace", DefaultPrefix)
+		return fmt.Errorf("protocol prefix %s must use btns.Validator for the /btns namespace", DefaultPrefix)
 	}
 	return nil
 }
@@ -216,9 +216,9 @@ func Mode(m ModeOpt) Option {
 // Validator configures the DHT to use the specified validator.
 //
 // Defaults to a namespaced validator that can validate both public key (under the "pk"
-// namespace) and IPNS records (under the "ipns" namespace). Setting the validator
+// namespace) and BTNS records (under the "btns" namespace). Setting the validator
 // implies that the user wants to control the validators and therefore the default
-// public key and IPNS validators will not be added.
+// public key and BTNS validators will not be added.
 func Validator(v record.Validator) Option {
 	return func(c *config) error {
 		c.validator = v
@@ -231,12 +231,12 @@ func Validator(v record.Validator) Option {
 // if the DHT is not using a `record.NamespacedValidator` as its validator (it
 // uses one by default but this can be overridden with the `Validator` option).
 // Adding a namespaced validator without changing the `Validator` will result in
-// adding a new validator in addition to the default public key and IPNS validators.
-// The "pk" and "ipns" namespaces cannot be overridden here unless a new `Validator`
+// adding a new validator in addition to the default public key and BTNS validators.
+// The "pk" and "btns" namespaces cannot be overridden here unless a new `Validator`
 // has been set first.
 //
-// Example: Given a validator registered as `NamespacedValidator("ipns",
-// myValidator)`, all records with keys starting with `/ipns/` will be validated
+// Example: Given a validator registered as `NamespacedValidator("btns",
+// myValidator)`, all records with keys starting with `/btns/` will be validated
 // with `myValidator`.
 func NamespacedValidator(ns string, v record.Validator) Option {
 	return func(c *config) error {
@@ -303,7 +303,7 @@ func Resiliency(beta int) Option {
 // MaxRecordAge specifies the maximum time that any node will hold onto a record ("PutValue record")
 // from the time its received. This does not apply to any other forms of validity that
 // the record may contain.
-// For example, a record may contain an ipns entry with an EOL saying its valid
+// For example, a record may contain an btns entry with an EOL saying its valid
 // until the year 2020 (a great time in the future). For that record to stick around
 // it must be rebroadcasted more frequently than once every 'MaxRecordAge'
 func MaxRecordAge(maxAge time.Duration) Option {
