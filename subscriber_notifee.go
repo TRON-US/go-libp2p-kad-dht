@@ -6,13 +6,11 @@ import (
 	"github.com/libp2p/go-libp2p-core/event"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/protocol"
 
 	"github.com/libp2p/go-eventbus"
 
-	ma "github.com/multiformats/go-multiaddr"
-
 	"github.com/jbenet/goprocess"
+	ma "github.com/multiformats/go-multiaddr"
 )
 
 // subscriberNotifee implements network.Notifee and also manages the subscriber to the event bus. We consume peer
@@ -87,10 +85,7 @@ func (nn *subscriberNotifee) subscribe(proc goprocess.Process) {
 				// with our new address to all peers we are connected to. However, we might not necessarily be connected
 				// to our closet peers & so in the true spirit of Zen, searching for ourself in the network really is the best way
 				// to to forge connections with those matter.
-				select {
-				case dht.triggerSelfLookup <- nil:
-				default:
-				}
+				dht.rtRefreshManager.RefreshNoWait()
 			case event.EvtPeerProtocolsUpdated:
 				handlePeerChangeEvent(dht, evt.Peer)
 			case event.EvtPeerIdentificationCompleted:
@@ -156,8 +151,8 @@ func handleLocalReachabilityChangedEvent(dht *IpfsDHT, e event.EvtLocalReachabil
 // supporting the primary protocols, we do not want to add peers that are speaking obsolete secondary protocols to our
 // routing table
 func (dht *IpfsDHT) validRTPeer(p peer.ID) (bool, error) {
-	protos, err := dht.peerstore.SupportsProtocols(p, protocol.ConvertToStrings(dht.protocols)...)
-	if len(protos) == 0 || err != nil {
+	b, err := dht.peerstore.FirstSupportedProtocol(p, dht.protocolsStrs...)
+	if len(b) == 0 || err != nil {
 		return false, err
 	}
 
@@ -201,8 +196,8 @@ func (nn *subscriberNotifee) Disconnected(n network.Network, v network.Conn) {
 	}()
 }
 
-func (nn *subscriberNotifee) Connected(n network.Network, v network.Conn)      {}
-func (nn *subscriberNotifee) OpenedStream(n network.Network, v network.Stream) {}
-func (nn *subscriberNotifee) ClosedStream(n network.Network, v network.Stream) {}
-func (nn *subscriberNotifee) Listen(n network.Network, a ma.Multiaddr)         {}
-func (nn *subscriberNotifee) ListenClose(n network.Network, a ma.Multiaddr)    {}
+func (nn *subscriberNotifee) Connected(network.Network, network.Conn)      {}
+func (nn *subscriberNotifee) OpenedStream(network.Network, network.Stream) {}
+func (nn *subscriberNotifee) ClosedStream(network.Network, network.Stream) {}
+func (nn *subscriberNotifee) Listen(network.Network, ma.Multiaddr)         {}
+func (nn *subscriberNotifee) ListenClose(network.Network, ma.Multiaddr)    {}

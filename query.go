@@ -117,10 +117,12 @@ func (dht *IpfsDHT) runLookupWithFollowup(ctx context.Context, target string, qu
 	}
 
 	// wait for all queries to complete before returning, aborting ongoing queries if we've been externally stopped
+	followupsCompleted := 0
 processFollowUp:
 	for i := 0; i < len(queryPeers); i++ {
 		select {
 		case <-doneCh:
+			followupsCompleted++
 			if stopFn() {
 				cancelFollowUp()
 				if i < len(queryPeers)-1 {
@@ -130,7 +132,14 @@ processFollowUp:
 			}
 		case <-ctx.Done():
 			lookupRes.completed = false
+			cancelFollowUp()
 			break processFollowUp
+		}
+	}
+
+	if !lookupRes.completed {
+		for i := followupsCompleted; i < len(queryPeers); i++ {
+			<-doneCh
 		}
 	}
 
@@ -174,7 +183,10 @@ func (dht *IpfsDHT) runQuery(ctx context.Context, target string, queryFn queryFn
 }
 
 func (q *query) recordPeerIsValuable(p peer.ID) {
-	q.dht.routingTable.UpdateLastUsefulAt(p, time.Now())
+	if !q.dht.routingTable.UpdateLastUsefulAt(p, time.Now()) {
+		// not in routing table
+		return
+	}
 }
 
 func (q *query) recordValuablePeers() {
