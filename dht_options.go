@@ -60,6 +60,7 @@ type config struct {
 
 	// set to true if we're operating in v1 dht compatible mode
 	v1CompatibleMode bool
+	bootstrapPeers   []peer.AddrInfo
 }
 
 func emptyQueryFilter(_ *IpfsDHT, ai peer.AddrInfo) bool  { return true }
@@ -117,7 +118,7 @@ var defaults = func(o *config) error {
 	o.maxRecordAge = time.Hour * 36
 
 	o.bucketSize = defaultBucketSize
-	o.concurrency = 3
+	o.concurrency = 10
 	o.resiliency = 3
 
 	o.v1CompatibleMode = true
@@ -281,7 +282,7 @@ func BucketSize(bucketSize int) Option {
 
 // Concurrency configures the number of concurrent requests (alpha in the Kademlia paper) for a given query path.
 //
-// The default value is 3.
+// The default value is 10.
 func Concurrency(alpha int) Option {
 	return func(c *config) error {
 		c.concurrency = alpha
@@ -390,6 +391,15 @@ func RoutingTableFilter(filter RouteTableFilterFunc) Option {
 func V1CompatibleMode(enable bool) Option {
 	return func(c *config) error {
 		c.v1CompatibleMode = enable
+		return nil
+	}
+}
+
+// BootstrapPeers configures the bootstrapping nodes that we will connect to to seed
+// and refresh our Routing Table if it becomes empty.
+func BootstrapPeers(bootstrappers ...peer.AddrInfo) Option {
+	return func(c *config) error {
+		c.bootstrapPeers = bootstrappers
 		return nil
 	}
 }
